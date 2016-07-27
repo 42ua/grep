@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/png" href="assets/gnu-head-mini.png" />
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>GNU grep live editor</title>
+
+    <!-- Bootstrap -->
+    <link href="assets/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Custom styles for this template -->
+    <style>
+      body {
+        position: relative; /* ScrollSpy http://getbootstrap.com/javascript/#via-data-attributes-2 */
+      }
+      .footer {margin: 25px;}
+      .manual-header {padding-top:50px; padding-bottom:50px; color: #fff; }
+
+      #introduction {background-color: #7f4c00;}
+      div[id^="regexp-"] { background-color: #331d5b;}
+      div:nth-child(even)[id^="regexp-"] { background-color: #005e6a;}
+      div[id^="practice-"] { background-color: #004b44;}
+      div:nth-child(even)[id^="practice-"] { background-color: #005836;}
+      #further-reading {background-color: #e7e7e7;}
+    </style>
+  </head>
+
+  <body data-spy="scroll" data-target=".navbar" data-offset="50">
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>                        
+          </button>
+          <a class="navbar-brand" href="index.html"><span class="glyphicon glyphicon-education"></span> GNU grep REPL</a>
+        </div>
+        <div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav">
+              <li><a href="#introduction">Introduction</a></li>
+              <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Theory <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#regexp-intro">Regular Expressions</a></li>
+                  <li><a href="#regexp-fundamental-structure">Fundamental Structure</a></li>
+                  <li><a href="#regexp-chars">Character Classes and Bracket Expressions</a></li>
+                  <li><a href="#regexp-backslash">The Backslash Character and Special Expressions</a></li>
+                  <li><a href="#regexp-anchoring">Anchoring</a></li>
+                  <li><a href="#regexp-back-references">Back-references and Subexpressions</a></li>
+                  <li><a href="#regexp-basic-vs-extended">Basic vs Extended Regular Expressions</a></li>
+                </ul>
+              </li>
+
+              <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Practice <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#practice-def">Default Output</a></li>
+                  <li><a href="#practice-basic">Basic Usage</a></li>
+                  <li><a href="#practice-regexp">Regular Expressions</a></li>
+                </ul>
+              </li>
+
+              <li><a href="#further-reading">Further Reading</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>    
+
+    <div id="introduction" class="container-fluid manual-header">
+        <h1>1. grep.js</h1>
+      <p>GNU grep compiled to JavaScript </p>
+
+      <p>
+        <b>grep</b> searches input files for lines containing a match to a given pattern list. When it finds
+        a match in a line, it copies the line to standard output (by default), or produces whatever
+        other sort of output you have requested with options.
+        Though <b>grep</b> expects to do the matching on text, it has no limits on input line length
+        other than available memory, and it can match arbitrary characters within a line. If the
+        final byte of an input file is not a newline, <b>grep</b> silently supplies one. Since newline is also
+        a separator for the list of patterns, there is no way to match newline characters in a text.
+      </p>
+      <p>May be invoked with the following command-line options:</p>
+
+      <ul>
+        <li>
+          <p>
+            <code>--help</code><br/>
+              Print a usage message briefly summarizing the 
+              command-line options and the bug-reporting address, then exit.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-V</code>
+            <code>--version</code><br/>
+              Print the version number of grep to the standard output stream. This version
+              number should be included in all bug reports.
+          </p>
+        </li>
+
+        <li>
+          <p>
+          <code>-e pattern</code>
+          <code>--regexp=pattern</code><br/>
+              Use pattern as the pattern. If this option is used multiple times,
+              search for all patterns given. 
+              <br/><code>-e pattern</code> is specified by POSIX.
+          </p>
+        </li> 
+        <li>
+          <p>
+            <code>-i</code>
+            <code>-y</code>
+            <code>--ignore-case</code><br/>
+              Ignore case distinctions, so that characters that differ only in case match 
+              each other. Although this is straightforward when letters differ in case only via 
+              lowercase-uppercase pairs, the behavior is unspecified in other situations.
+              <br/><code>-y</code> is an obsolete synonym that is provided for compatibility. 
+              <br/><code>-i</code> is specified by POSIX.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-v</code>
+            <code>--invert-match</code><br/>
+              Invert the sense of matching, to select non-matching lines. 
+              <br/><code>-v</code> is specified by POSIX.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-w</code>
+            <code>--word-regexp</code><br/>
+              Select only those lines containing matches that form whole words. The test
+              is that the matching substring must either be at the beginning of the line, or
+              preceded by a non-word constituent character. Similarly, it must be either at
+              the end of the line or followed by a non-word constituent character. Word-
+              constituent characters are letters, digits, and the underscore. This option has
+              no effect if <code>-x</code> is also specified.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-x</code>
+            <code>--line-regexp</code><br/>
+              Select only those matches that exactly match the whole line. For a regular
+              expression pattern, this is like parenthesizing the pattern and then surrounding
+              it with ‘^’ and ‘$’. <br/><code>-x</code> is specified by POSIX.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-c</code>
+            <code>--count</code><br/>
+              Suppress normal output; instead print a count of matching lines for each input
+              file. With the <code>-v</code> <code>--invert-match</code> option, count non-matching lines. 
+              <br/><code>-c</code> is specified by POSIX.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>--color[=WHEN]</code>
+            <code>--colour[=WHEN]</code><br/>
+              Surround the matched (non-empty) strings, matching lines, context lines, file
+              names, line numbers, byte offsets, and separators (for fields and groups of
+              context lines) with escape sequences to display them in color on the terminal. 
+              The colors default to red matched text, magenta file names, 
+              green line numbers, green byte offsets, 
+              cyan separators, and default colors otherwise. 
+              WHEN is ‘never’, ‘always’, or ‘auto’.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-m num</code>
+            <code>--max-count=num</code><br/>
+              Stop reading a file after num matching lines.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-o</code>
+            <code>--only-matching</code><br/>
+              Print only the matched (non-empty) parts of matching lines, with each such
+              part on a separate output line.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-b</code>
+            <code>--byte-offset</code><br/>
+              Print the 0-based byte offset within the input file before each line of output. If
+              <code>-o</code> <code>--only-matching</code> is specified, print the offset of the matching part itself.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-n</code>
+            <code>--line-number</code><br/>
+              Prefix each line of output with the 1-based line number within its input file.
+              <br/><code>-n</code> is specified by POSIX.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-A num</code>
+            <code>--after-context=num</code><br/>
+              Print num lines of trailing context after matching lines. 
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-B num</code>
+            <code>--before-context=num</code><br/>
+              Print num lines of leading context before matching lines.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-C num</code>
+            <code>-num</code>
+            <code>--context=num</code><br/>
+              Print num lines of leading and trailing output context. 
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>--group-separator=string</code><br/>
+              When <code>-A</code>, <code>-B</code> or <code>-C</code> are in use, print string instead of -- between groups of lines.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>--no-group-separator</code><br/>
+              When <code>-A</code>, <code>-B</code> or <code>-C</code> are in use, do not print a separator between groups of lines. 
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-a</code>
+            <code>--text</code><br/>
+              Process a binary file as if it were text;
+              <code>--binary-files=text</code> option.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-G</code>
+            <code>--basic-regexp</code><br/>
+              Interpret the pattern as a basic regular expression (BRE). This is the default.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-E</code>
+            <code>--extended-regexp</code><br/>
+              Interpret the pattern as an extended regular expression (ERE). 
+              <br/><code>-E</code> is specified by POSIX.
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-F</code>
+            <code>--fixed-strings</code><br/>
+              Interpret the pattern as a list of fixed strings (instead of regular expressions),
+              separated by newlines, any of which is to be matched. 
+              <br/><code>-F</code> is specified by POSIX.
+          </p>
+        </li>
+      </ul>
+
+    </div>
+    <div id="regexp-intro" class="container-fluid manual-header">
+      <h1>2. Regular Expressions</h1>
+      <p>
+        A regular expression is a pattern that describes a set of strings. Regular expressions are constructed analogously to arithmetic expressions, by using various operators to combine smaller expressions. grep understands three different versions of regular expression syntax: “basic” (BRE), “extended” (ERE) and “perl” (PCRE). In GNU grep, there is no difference in available functionality between the basic and extended syntaxes. In other implementations, basic regular expressions are less powerful. The following description applies to extended regular expressions; differences for basic regular expressions are summarized afterwards.
+      </p>
+
+    </div>
+
+    <div id="regexp-fundamental-structure" class="container-fluid manual-header">
+      <h1>2.1. Fundamental Structure</h1>
+
+      <p>
+        The fundamental building blocks are the regular expressions that match a single character. Most characters, including all letters and digits, are regular expressions that match themselves. Any meta-character with special meaning may be quoted by preceding it with a backslash. 
+      </p>
+      <p>
+        A regular expression may be followed by one of several repetition operators: 
+      </p>
+      <ul>
+        <li>
+          <p>
+          <code>.</code><br/>
+             The period <code>.</code> matches any single character. 
+          </p>
+        </li>
+        <li>
+          <p>
+          <code>?</code><br/>
+             The preceding item is optional and will be matched at most once. 
+          </p>
+        </li>
+        <li>
+          <p>
+          <code>*</code><br/>
+             The preceding item will be matched zero or more times. 
+          </p>
+        </li>
+        <li>
+          <p>
+          <code>+</code><br/>
+             The preceding item will be matched one or more times. 
+          </p>
+        </li>
+        <li>
+          <p>
+          <code>{n}</code><br/>
+             The preceding item is matched exactly n times. 
+          </p>
+        </li>
+        <li>
+          <p>
+          <code>{n,}</code><br/>
+             The preceding item is matched n or more times. 
+          </p>
+        </li>
+        <li>
+          <p>
+          <code>{,m}</code><br/>
+             The preceding item is matched at most m times. This is a GNU extension. 
+          </p>
+        </li>
+        <li>
+          <p>
+          <code>{n,m}</code><br/>
+             The preceding item is matched at least n times, but not more than m times. 
+          </p>
+        </li>
+      </ul>
+
+      <p>
+        The empty regular expression matches the empty string. Two regular expressions may be concatenated; the resulting regular expression matches any string formed by concatenating two substrings that respectively match the concatenated expressions. 
+      </p>
+      <p>
+        Two regular expressions may be joined by the infix operator <code>|</code>; the resulting regular expression matches any string matching either alternate expression. 
+      </p>
+      <p>
+        Repetition takes precedence over concatenation, which in turn takes precedence over alternation. A whole expression may be enclosed in parentheses to override these precedence rules and form a subexpression. An unmatched ‘)’ matches just itself. 
+      </p>
+
+    </div>
+
+    <div id="regexp-chars" class="container-fluid manual-header">
+      <h1>2.2. Character Classes and Bracket Expressions</h1>
+      <p>
+        A <b>bracket expression</b> is a list of characters enclosed by <code>[</code> and <code>]</code>. It matches any single character in that list; if the first character of the list is the caret <code>^</code>, then it matches any character <b>not</b> in the list. For example, the regular expression <code>[0123456789]</code> matches any single digit. 
+      </p>
+      <p>
+        Within a bracket expression, a <b>range expression</b> consists of two characters separated by a hyphen. It matches any single character that sorts between the two characters, inclusive. In the default C locale, the sorting sequence is the native character order; for example, <code>[a-d]</code> is equivalent to <code>[abcd]</code>.
+      </p>
+      <p>
+        Finally, certain named classes of characters are predefined within bracket expressions, as follows.
+      </p>
+
+      <ul>
+        <li>
+          <p>
+            <code>[:alnum:]</code><br/>
+            Alphanumeric characters: <code>[:alpha:]</code> and <code>[:digit:]</code>; in the ‘C’ locale and ASCII character encoding, this is the same as <code>[0-9A-Za-z]</code>
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:alpha:]</code><br/>
+            Alphabetic characters: <code>[:lower:]</code> and <code>[:upper:]</code>; in the ‘C’ locale and ASCII character encoding, this is the same as <code>[A-Za-z]</code>
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:blank:]</code><br/>
+            Blank characters: space and tab
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:cntrl:]</code><br/>
+            Control characters. In ASCII, these characters have octal codes 000 through 037, and 177 (DEL). In other character sets, these are the equivalent characters, if any
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:digit:]</code><br/>
+            Digits: <b>0 1 2 3 4 5 6 7 8 9</b>
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:graph:]</code><br/>
+            Graphical characters: <code>[:alnum:]</code> and <code>[:punct:]</code>
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:lower:]</code><br/>
+            Lower-case letters; in the ‘C’ locale and ASCII character encoding, this is <b>a b c d e f g h i j k l m n o p q r s t u v w x y z</b>
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:print:]</code><br/>
+            Printable characters: <code>[:alnum:]</code>, <code>[:punct:]</code>, and space
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:punct:]</code><br/>
+            Punctuation characters; in the ‘C’ locale and ASCII character encoding, this is <b>! " # $ % &amp; ' ( ) * + , - . / : ; &lt; = &gt; ? @ [ \ ] ^ _ ` { | } ~</b> 
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:space:]</code><br/>
+            Space characters: in the ‘C’ locale, this is tab, newline, vertical tab, form feed, carriage return, and space
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:upper:]</code><br/>
+            Upper-case letters: in the ‘C’ locale and ASCII character encoding, this is <b>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</b>  
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:xdigit:]</code><br/>
+            Hexadecimal digits: <b>0 1 2 3 4 5 6 7 8 9 A B C D E F a b c d e f</b>
+          </p>
+        </li>
+      </ul>
+
+      <p>
+        Note that the brackets in these class names are part of the symbolic names, and must be included in addition to the brackets delimiting the bracket expression. 
+      </p>
+      <p>
+        Most meta-characters lose their special meaning inside bracket expressions.
+      </p>
+
+      <ul>
+        <li>
+          <p>
+            <code>]</code><br/>
+            ends the bracket expression if it’s not the first list item. So, if you want to make the <code>]</code> character a list item, you must put it first
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[.</code><br/>
+            represents the open collating symbol
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>.]</code><br/>
+            represents the close collating symbol
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[=</code><br/>
+            represents the open equivalence class
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>=]</code><br/>
+            represents the close equivalence class
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>[:</code><br/>
+            represents the open character class symbol, and should be followed by a valid character class name
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>:]</code><br/>
+            represents the close character class symbol
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>-</code><br/>
+            represents the range if it’s not first or last in a list or the ending point of a range
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>^</code><br/>
+            represents the characters not in the list. If you want to make the <code>^</code> character a list item, place it anywhere but first
+          </p>
+        </li>
+      </ul>
+    </div>
+
+    <div id="regexp-backslash" class="container-fluid manual-header">
+      <h1>2.3. The Backslash Character and Special Expressions</h1>
+      <p>
+        The <code>\</code> character, when followed by certain ordinary characters, takes a special meaning: 
+      </p>
+      <p>
+        Within a bracket expression, a <b>range expression</b> consists of two characters separated by a hyphen. It matches any single character that sorts between the two characters, inclusive. In the default C locale, the sorting sequence is the native character order; for example, <code>[a-d]</code> is equivalent to <code>[abcd]</code>.
+      </p>
+      <p>
+        Finally, certain named classes of characters are predefined within bracket expressions, as follows.
+      </p>
+
+      <ul>
+        <li>
+          <p>
+            <code>\b</code><br/>
+            Match the empty string at the edge of a word
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>\B</code><br/>
+            Match the empty string provided it’s not at the edge of a word
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>\&lt;</code><br/>
+            Match the empty string at the beginning of word
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>\&gt;</code><br/>
+            Match the empty string at the end of word
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>\w</code><br/>
+            Match word constituent, it is a synonym for <code>[_[:alnum:]]</code>
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>\W</code><br/>
+            Match non-word constituent, it is a synonym for <code>[^_[:alnum:]]</code>
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>\s</code><br/>
+            Match whitespace, it is a synonym for <code>[[:space:]]</code>
+          </p>
+        </li>
+        <li>
+          <p>
+            <code>\S</code><br/>
+            Match non-whitespace, it is a synonym for <code>[^[:space:]]</code>
+          </p>
+        </li>
+      </ul>
+
+      <p>
+        For example, <code>\brat\b</code> matches the separate word <code>rat</code>, <code>\Brat\B</code> matches <code>crate</code> but not <code>furry rat</code>. 
+      </p>
+    </div>
+
+    <div id="regexp-anchoring" class="container-fluid manual-header">
+      <h1>2.4. Anchoring</h1>
+      <p>
+        The caret <code>^</code> and the dollar sign <code>$</code> are meta-characters that respectively match the empty string at the beginning and end of a line. They are termed anchors, since they force the match to be “anchored” to beginning or end of a line, respectively. 
+      </p>
+    </div>
+
+    <div id="regexp-back-references" class="container-fluid manual-header">
+      <h1>2.5. Back-references and Subexpressions</h1>
+      <p>
+        The back-reference <code>\n</code>, where n is a single digit, matches the substring previously matched by the nth parenthesized subexpression of the regular expression. For example, <code>(a)\1</code> matches <code>aa</code>. When used with alternation, if the group does not participate in the match then the back-reference makes the whole match fail. For example, <code>a(.)|b\1</code> will not match <code>ba</code>. When multiple regular expressions are given with -e back-references are local to each expression. 
+      </p>
+    </div>
+
+    <div id="regexp-basic-vs-extended" class="container-fluid manual-header">
+      <h1>2.6. Basic vs Extended Regular Expressions</h1>
+      <p>
+        In basic regular expressions the meta-characters <code>?</code>, <code>+</code>, <code>{</code>, <code>|</code>, <code>(</code>, and <code>)</code> lose their special meaning; instead use the backslashed versions <code>\?</code>, <code>\+</code>, <code>\{</code>, <code>\|</code>, <code>\(</code>, and <code>\)</code>
+      </p>
+      <p>
+        Traditional egrep did not support the <code>{</code> meta-character, and some egrep implementations support <code>\{</code> instead, so portable scripts should avoid <code>{</code> in <code>grep -E</code> patterns and should use <code>[{]</code> to match a literal <code>{</code>
+      </p>
+      <p>
+        GNU grep -E attempts to support traditional usage by assuming that <code>{</code> is not special if it would be the start of an invalid interval specification. For example, the command <code>grep -E '{1'</code> searches for the two-character string <code>{1</code>instead of reporting a syntax error in the regular expression. POSIX allows this behavior as an extension, but portable scripts should avoid it. 
+      </p>
+    </div>
+
+    <div id="practice-def" class="container-fluid manual-header">
+      <h1>Default Output</h1>
+      <p>
+        <a href='index.html?gist=a9f690c13fa09dbd36da74c319e000d1' rel="nofollow" target="_blank">GIST</a> | grep sends its results to the screen by default
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/a9f690c13fa09dbd36da74c319e000d1.js"></script>
+      </p>
+    </div>
+
+    <div id="practice-basic" class="container-fluid manual-header">
+      <h1>Basic Usage</h1>
+      <p>
+        <a href='index.html?gist=957620b1864a0951915cfdf826f48444' rel="nofollow" target="_blank">GIST</a> | We can use grep to search for every line that contains the word 'Adams'
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/957620b1864a0951915cfdf826f48444.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=ff5db1fc8091ba2e1b203a942ee9eceb' rel="nofollow" target="_blank">GIST</a> | If we would want grep to ignore the "case" of our search parameter and search for both upper- and lower-case variations, we can specify the <code>-i</code> or <code>--ignore-case</code> option
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/ff5db1fc8091ba2e1b203a942ee9eceb.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=52e9acf3762c6ec1f13000d4dc8b3061' rel="nofollow" target="_blank">GIST</a> | If we want to find all lines that <b>do not</b> contain a specified pattern, we can use the <code>-v</code> or <code>--invert-match</code> option.
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/52e9acf3762c6ec1f13000d4dc8b3061.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=0bcb3ff471727128123251ef1bec4986' rel="nofollow" target="_blank">GIST</a> | It is often useful to know the line number that the matches occur on. This can be accomplished by using the <code>-n</code> or <code>--line-number</code> option.
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/0bcb3ff471727128123251ef1bec4986.js"></script>
+      </p>
+    </div>
+
+    <div id="practice-regexp" class="container-fluid manual-header">
+      <h1>Regular Expressions</h1>
+      <p>
+        <a href='index.html?gist=360500ae11edaf00787f91c99543b2e8' rel="nofollow" target="_blank">GIST</a> | Anchors are special characters that specify where in the line a match must occur to be valid. For instance, this string example will only mach "J" if it occurs at the very beginning of a line
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/360500ae11edaf00787f91c99543b2e8.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=165c954699112b570d137a3c7e39666c' rel="nofollow" target="_blank">GIST</a> | Similarly, the <code>$</code> anchor can be used after a string to indicate that the match will only be valid if it occurs at the very end of a line.
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/165c954699112b570d137a3c7e39666c.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=7fba94578e10c1d9bbae6a28fa21f3ff' rel="nofollow" target="_blank">GIST</a> | The period character <code>.</code> is used in regular expressions to mean that any single character can exist at the specified location.
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/7fba94578e10c1d9bbae6a28fa21f3ff.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=7c0bf2f93e365feb24b61fe95295e424' rel="nofollow" target="_blank">GIST</a> | By placing a group of characters within brackets <code>[</code> and <code>]</code>, we can specify that the character at that position can be any one character found within the bracket group.
+
+        This means that if we wanted to find the lines that contain "01" or "09", we could specify those variations succinctly by using the following pattern:
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/7c0bf2f93e365feb24b61fe95295e424.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=d8d376a93bf9deb91c1c52a68a766198' rel="nofollow" target="_blank">GIST</a> | We can have the pattern match anything except the characters within a bracket by beginning the list of characters within the brackets with a <code>^</code> character.
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/d8d376a93bf9deb91c1c52a68a766198.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=d95b5d0daf9261ee5fff277566b9069b' rel="nofollow" target="_blank">GIST</a> | One of the most commonly used meta-characters is the <code>*</code>, which means "repeat the previous character or expression zero or more times".
+
+        If we wanted to find each line that contained an opening and closing parenthesis, with only letters and single spaces in between, we could use the following expression:
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/d95b5d0daf9261ee5fff277566b9069b.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=bcea92a0fa2ed30a2eebd31a0dfb973f' rel="nofollow" target="_blank">GIST</a> | We can escape characters by using the backslash character (\) before the character that would normally have a special meaning
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/bcea92a0fa2ed30a2eebd31a0dfb973f.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=45b71fc42b295350982dfd69c5ee1f4b' rel="nofollow" target="_blank">GIST</a> | Similar to how bracket expressions can specify different possible choices for single character matches, alternation allows you to specify alternative matches for strings or expression sets.
+
+        To indicate alternation, we use the pipe character <code>|</code>
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/45b71fc42b295350982dfd69c5ee1f4b.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=3c72f29e3e60551c32dc88d44ca59461' rel="nofollow" target="_blank">GIST</a> | To match a character zero or one times, you can use the <code>?</code> character. This makes character or character set that came before optional, in essence
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/3c72f29e3e60551c32dc88d44ca59461.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=a51d50f52bbf7f92900c34b7ff544b9e' rel="nofollow" target="_blank">GIST</a> | The <code>+</code> character matches an expression one or more times. This is almost like the <code>*</code> meta-character, but with the <code>+</code> character, the expression must match at least once. The following expression matches the string "free" plus one or more characters that are not whitespace.
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/a51d50f52bbf7f92900c34b7ff544b9e.js"></script>
+      </p>
+      <p>
+        <a href='index.html?gist=ca0b8c049c98e3883895f983fc2612d7' rel="nofollow" target="_blank">GIST</a> | If we want to match any words that have between 5 and 7 characters, we can use the following expression:
+      </p>      
+      <p>
+        <script src="https://gist.github.com/anonymous/ca0b8c049c98e3883895f983fc2612d7.js"></script>
+      </p>
+    </div>
+
+    <div id="further-reading" class="container-fluid manual-header">
+
+      <h2 class="text-center text-primary">Further Reading</h2>
+
+      <ul class="text-center list-unstyled">
+        <li>
+          <p>
+            <a href='https://www.gnu.org/software/grep/manual/grep.html' rel="nofollow">Official GNU Grep manual</a>
+          </p>
+        </li>
+        <li>
+          <p>
+            <a href='https://www.digitalocean.com/community/tutorials/using-grep-regular-expressions-to-search-for-text-patterns-in-linux' rel="nofollow">Using Grep &amp; Regular Expressions to Search for Text Patterns in Linux</a>
+          </p>
+        </li>
+        <li>
+          <p>
+            <a href='http://www.grymoire.com/Unix/Grep.html' rel="nofollow">Grep - An introduction to grep and egrep. How to search for strings inside of files.</a>
+          </p>
+        </li>
+        <li>
+          <p>
+            <a href='http://www.tutorialspoint.com/unix_commands/grep.htm' rel="nofollow">Ggrep - Unix, Linux Command</a>
+          </p>
+        </li>
+      </ul>
+
+    </div>
+    <footer class="footer">
+      <div class="container-fluid text-muted text-center">
+        Designed and maintained with ❤ by <a href="mailto:o.mazko%20%5Bat%5D%20mail.ru?subject=sed.js" rel="nofollow" onmouseover="var split = this.href.split('?');  split[0] = split[0].replace('%20%5Bat%5D%20','@'); this.href = split.join('?');">Oleg Mazko</a>
+      </div>
+    </footer>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="assets/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="assets/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="assets/libs/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>
