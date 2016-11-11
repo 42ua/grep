@@ -4,7 +4,7 @@ $(function() {
 
   (function() {
 
-    var parseId;
+    var parseId, cacheInput, cacheArgs;
 
     function parse() {
       if (parseId) {
@@ -14,27 +14,34 @@ $(function() {
       parseId = setTimeout(function () {
         var input = $("#grep-stdin").val(),
             args = $("#grep-cmd").val(),
-            output = fn_gnu_grep(input, args);
-        output = output.replace(/\n$/, "");
-        output = $('<div/>').text(output).html();
-        output = output.replace(
-          /\u001B\[01;31m\u001B\[K(.+?)\u001B\[m\u001B\[K/g, 
-          "<span style='color:red'>$1</span>");
-        output = output.replace(
-          /\u001B\[35m\u001B\[K(.+?)\u001B\[m\u001B\[K/g, 
-          "<span style='color:magenta'>$1</span>");
-        output = output.replace(
-          /\u001B\[32m\u001B\[K(.+?)\u001B\[m\u001B\[K/g, 
-          "<span style='color:green'>$1</span>");
-        output = output.replace(
-          /\u001B\[36m\u001B\[K(.+?)\u001B\[m\u001B\[K/g, 
-          "<span style='color:cyan'>$1</span>");
-        $("#grep-stdout").html(output);
+            output;
+
+        if (cacheInput !== input || cacheArgs !== args){
+          cacheInput = input;
+          cacheArgs = args;
+
+          output = fn_gnu_grep(input, args);
+          output = output.replace(/\n$/, "");
+          output = $('<div/>').text(output).html();
+          output = output.replace(
+            /\u001B\[01;31m\u001B\[K(.+?)\u001B\[m\u001B\[K/g, 
+            "<span style='color:red'>$1</span>");
+          output = output.replace(
+            /\u001B\[35m\u001B\[K(.+?)\u001B\[m\u001B\[K/g, 
+            "<span style='color:magenta'>$1</span>");
+          output = output.replace(
+            /\u001B\[32m\u001B\[K(.+?)\u001B\[m\u001B\[K/g, 
+            "<span style='color:green'>$1</span>");
+          output = output.replace(
+            /\u001B\[36m\u001B\[K(.+?)\u001B\[m\u001B\[K/g, 
+            "<span style='color:cyan'>$1</span>");
+          $("#grep-stdout").html(output);
+        }
       }, 333);
     }
 
-    $("#grep-stdin").keyup(parse);
-    $("#grep-cmd").keyup(parse);
+    $("#grep-stdin").on('keyup input', parse);
+    $("#grep-cmd").on('keyup input', parse);
 
   })();
 
